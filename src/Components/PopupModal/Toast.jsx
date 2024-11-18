@@ -2,7 +2,7 @@ import { useToast } from '@chakra-ui/react'
 
 function Toast({type}) {
     const toast = useToast();
-    if(type == 'accountCreated'){
+    if(type === 'accountCreated'){
         return (
             toast({
                 title: 'Account created.',
@@ -13,7 +13,7 @@ function Toast({type}) {
             })
           )
     }
-    if(type == 'accountExists'){
+    if(type === 'accountExists'){
         return (
             toast({
                 title: 'Account exists.',
@@ -24,7 +24,7 @@ function Toast({type}) {
             })
           )
     }
-    if(type == 'loginFailedPass'){
+    if(type === 'loginFailedPass'){
         return (
             toast({
                 title: 'Login failed.',
@@ -35,7 +35,7 @@ function Toast({type}) {
             })
           )
     }
-    if(type == 'loginFailed'){
+    if(type === 'loginFailed'){
         return (
             toast({
                 title: 'Login failed.',
@@ -46,7 +46,7 @@ function Toast({type}) {
             })
           )
     }
-    if(type == 'loginSuccess'){
+    if(type === 'loginSuccess'){
         return (
             toast({
                 title: 'Login successful.',

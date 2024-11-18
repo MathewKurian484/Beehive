@@ -1,4 +1,4 @@
-import React from 'react';
+import react from 'react';
 import { Routes, Route } from 'react-router-dom';
 import HomepageBS from './Components/Homepage_BS/HomepageBS';
 import HomepageAS from './Components/Homepage_AS/HomepageAS';
@@ -7,6 +7,7 @@ import Story from './Components/Pages/Story';
 import Create from './Components/Pages/Create';
 import Bookmark from './Components/Pages/Bookmark';
 import SinglePost from './Components/midPart/singlePost';
+import Account from './Components/account/account'
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <Route path="/story" element={<Story />} />
       <Route path="/create" element={<Create />} />
       <Route path="/bookmark" element={<Bookmark />} />
+      <Route path="/account" element={<Account />} />
     </Routes>
   );
 }

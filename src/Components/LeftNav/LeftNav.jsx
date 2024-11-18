@@ -20,11 +20,21 @@ export default function Left() {
         localStorage.removeItem('token');
         navigate('/');
     }
+
+    const ShowUserDetails = () => {
+        navigate('/Account')
+    }
+
+
+    
     const getUser = async (token) => {
       try {
-        token = token || localStorage.getItem('token');
-        let res = await fetch(`https://medium-backend.onrender.com/getUser`, {
-          method: 'GET',
+        token = token || localStorage.getItem('user');
+        const userDetails = JSON.parse(token);
+        const reqbody = {userId: userDetails.id}
+        let res = await fetch(`http://localhost:5000/getUser`, {
+          method: 'POST',
+          body: JSON.stringify(reqbody),
           headers: {
             'Content-Type': 'application/json',
             token
@@ -51,7 +61,7 @@ export default function Left() {
         <div className="tem0">
           <Link to="/homepage">
             <img
-              src="https://seeklogo.com/images/M/medium-logo-F0ACFCCD58-seeklogo.com.png"
+              src="public/BEEHIVE (2).png"
               alt=""
             />
           </Link>
@@ -157,6 +167,7 @@ export default function Left() {
       </div>
       {
         logoutPopUp ? (<div style={{position:"absolute", bottom:"43px", left:"87px"}}>
+          <Button onClick={ShowUserDetails}>Account</Button>
           <Button onClick={handleLogout}>Logout</Button>
         </div>) : null
       }

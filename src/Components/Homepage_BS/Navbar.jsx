@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from 'react'
 
 import './Navbar.css'
-import { Button } from "@chakra-ui/button" 
+import { Button } from "@chakra-ui/react" 
 import PopupModal from '../PopupModal/PopupModal';
 import { PopupContext } from '../../Context/PopupContext';
 import { Link } from 'react-router-dom'
@@ -28,7 +28,7 @@ const Navbar = () => {
     <div style={{paddingLeft:"100px", paddingRight:"100px"}} className = { navbar ? "navbar active" : "navbar" }>
 
 <div>
-<Link to="/"><img src="https://i.ibb.co/8jW928K/medium-logo-removebg-preview.png" alt="medium-logo-removebg-preview" border="0"/></Link>
+<Link to="/"><img src="logo.png" alt="medium-logo-removebg-preview" border="0"style={{ width: '50px', height: '50px' }}/></Link>
 </div>
   
   <div className = "part-2">

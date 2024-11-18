@@ -6,12 +6,17 @@ import PostCard from "./component/PostCard";
 // import Right from '../RightParts/right';
 
 async function getPosts() {
-    const response = await fetch("https://medium-backend.onrender.com/getAllPosts").catch((err) => {
-        console.log(err);
+    // const response = await fetch("http://localhost:5000/posts").catch((err) => {
+    //     console.log(err);
+    // });
+    const response = await fetch("http://localhost:5000/posts",{
+        method: "GET",
+        headers: {
+            "content-Type": "application/json",
+        }
     });
-
     const data = await response.json();
-    // console.log(data);
+     console.log(data);
 
     return data;
 }
@@ -23,7 +28,6 @@ export default function Posts() {
     useEffect(() => {
         setIsLoadingPosts(true);
         getPosts().then((response) => {
-            response = response.slice(5,58);
             setPosts(response);
             setIsLoadingPosts(false);
         });    
@@ -89,7 +93,7 @@ export default function Posts() {
                     </> : <>
                     {
                         posts.map(post => {
-                            return <PostCard key={post._id} post={post} />
+                            return <PostCard key={post.id} post={post} />
                         })
                     }
                     </>

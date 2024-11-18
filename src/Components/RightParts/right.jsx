@@ -1,64 +1,46 @@
-import React from 'react'
-import { HStack, Avatar, Heading ,Text} from '@chakra-ui/react'
-import "./right.css";
-import { BsDot } from 'react-icons/bs';
+import React, { useState } from 'react';
+import { HStack, Avatar, Heading, Box, Input, Button, Text } from '@chakra-ui/react';
+import './right.css';
+import PostCard from '../midPart/component/PostCard'; // Update the path to the correct location
 
 export default function Right() {
-    return (
-        // <div style={{border:"1px solid red", width:"416px", margin:"auto", marginRight:"0px", position:"relative"}}>
-            <div className='right' >
-            <div>
-                <button>Get unlimited access</button>
-            </div>
-            <div>
-                <input type="text" id='search' placeholder="Search" />
-            </div>
-            <div className='li-tag'>
-                <BsDot color='green' size='50px'/>
-                <span>What We're Reading Today</span>
-            </div>
-            <div className='topic'>
-                <HStack spacing='10px'>
-                    <Avatar size='xs' name='Gaurav Kumar'  src='https://bit.ly/broken-link' />
-                    <Heading as='h6' fontWeight={600} size='xs'>Gaurav Kumar</Heading>
-                </HStack>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>My 2022 summer lists</Heading>
-            </div>
-            <div className='topic'>
-                <HStack spacing='10px'>
-                    <Avatar size='xs' name='Akash Kumawat' src='https://bit.ly/broken-link' />
-                    <Heading as='h6' fontWeight={600} size='xs'>Akash Kumawat</Heading>
-                </HStack>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>Can Reading Fiction Make You a Better Person?</Heading>
-            </div>
-            <div className='topic'>
-                <HStack spacing='10px'>
-                    <Avatar size='xs' name='Pallav Sharma' src='https://bit.ly/broken-link' />
-                    <Heading fontWeight={600} as='h6' size='xs'>Pallav Sharma</Heading>
-                </HStack>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>Hate NFTs? I have some bad news for you…</Heading>
-                
-            </div>
-            <div className='topic'>
-                <HStack spacing='10px'>
-                    <Avatar size='xs' name='Rahul Panday' src='https://bit.ly/broken-link' />
-                    <Heading as='h6' fontWeight={600} size='xs'>Rahul Panday</Heading>
-                </HStack>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>We Are Still Good</Heading>
-            </div>
-            <div className='topic'>
-                <HStack spacing='10px'>
-                    <Avatar size='xs' name='Aausaf Alam' src='https://bit.ly/broken-link' />
-                    <Heading as='h6' fontWeight={600} size='xs'>Aausaf Alam</Heading>
-                </HStack>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>Be the Person You Are on Vacation</Heading>
-            <Text fontSize='xs' mt={4} color="green.500" cursor="pointer"> See the full list</Text>
-            </div>
-            <div className='topic'>
-                <Heading as='h5' mt={2} cursor="pointer" size='sm'>Reading list</Heading>
-                <Text fontSize='sm' mt={4} color="gray.600" cursor="pointer"> Click the  on any story to easily add it to your reading list or a custom list that you can share.</Text>
-            </div>
-        </div>
-        // </div>
-    )
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleSearch = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/searchPosts?keyword=${searchTerm}`);
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Error fetching search results:', error);
+    }
+  };
+
+  return (
+    <div className='right'>
+      <div>
+        <button>Get unlimited access</button>
+      </div>
+      <div>
+        <Input
+          type="text"
+          id='search'
+          placeholder="Search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Button onClick={handleSearch}>Search</Button>
+      </div>
+      <div>
+        {searchResults.length > 0 ? (
+          searchResults.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))
+        ) : (
+          <Text>No search results found.</Text>
+        )}
+      </div>
+    </div>
+  );
 }

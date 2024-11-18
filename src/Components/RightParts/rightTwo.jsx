@@ -2,20 +2,15 @@ import { Avatar, Box, Button, Heading, HStack, Skeleton, SkeletonCircle } from '
 import React from 'react';
 import './right.css';
 import { GiMailedFist } from 'react-icons/gi';
-// import { LeftNavContext } from '../../Context/LeftNavContext';
 
-export default function RightTwo({ userPost }) {
+export default function RightTwo({ userPost = {} }) {
   const [singleUser, setSingleUser] = React.useState(userPost);
-  // const { user } = React.useContext(LeftNavContext);
   const [user, setUser] = React.useState();
   const [followed, setFollowed] = React.useState(null);
   const [isLoadingUser, setIsLoadingUser] = React.useState(false);
 
   const checkFollowed = async user => {
-    // console.log(user, singleUser);
-    let check = await user.following.includes(userPost._id);
-    // console.log(check);
-    if (check) {
+    if (userPost._id && user.following.includes(userPost._id)) {
       setIsLoadingUser(true);
       setFollowed(true);
       setIsLoadingUser(false);
@@ -23,13 +18,12 @@ export default function RightTwo({ userPost }) {
       setFollowed(false);
     }
   };
-  // console.log(user)
-  //follow a user
+
   const followUser = async userId => {
     try {
       setIsLoadingUser(true);
       let token = localStorage.getItem('token');
-      await fetch(`https://medium-backend.onrender.com/followUser/${userId}`, {
+      await fetch(`http://localhost:5000/followUser/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,12 +40,11 @@ export default function RightTwo({ userPost }) {
     }
   };
 
-  //unfollow a user
   const unfollowUser = async userId => {
     try {
       setIsLoadingUser(true);
       let token = localStorage.getItem('token');
-      await fetch(`https://medium-backend.onrender.com/unfollowUser/${userId}`, {
+      await fetch(`http://localhost:5000/unfollowUser/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,25 +61,24 @@ export default function RightTwo({ userPost }) {
     }
   };
 
-  //refresh user
   const refreshUser = async () => {
     try {
       setIsLoadingUser(true);
-      let res = await fetch(
-        `https://medium-backend.onrender.com/getSingleUser/${userPost._id}`
-      );
-      let result = await res.json();
-      // console.log(result);
-      setSingleUser(result);
+      if (userPost._id) {
+        let res = await fetch(`http://localhost:5000/getSingleUser/${userPost._id}`);
+        let result = await res.json();
+        setSingleUser(result);
+      }
       setIsLoadingUser(false);
     } catch (error) {
       console.log(error);
     }
   };
+
   const getUser = async token => {
     try {
       setIsLoadingUser(true);
-      let res = await fetch(`https://medium-backend.onrender.com/getUser`, {
+      let res = await fetch(`http://localhost:5000/getUser`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -94,8 +86,7 @@ export default function RightTwo({ userPost }) {
         },
       });
       let user = await res.json();
-      await setUser(user);
-      //   console.log("user",user);
+      setUser(user);
       setIsLoadingUser(false);
       checkFollowed(user);
     } catch (error) {

@@ -18,14 +18,8 @@ import {
   FormErrorMessage,
   FormHelperText,
 } from '@chakra-ui/react';
-import { gapi } from 'gapi-script';
-import FacebookLogin from 'react-facebook-login';
-import GoogleLogin from 'react-google-login';
-import { GoMail } from 'react-icons/go';
-import { FaFacebook } from 'react-icons/fa';
 import Toast from './Toast';
 import { useNavigate } from 'react-router-dom';
-
 
 function PopupModal({ mainTitle }) {
   const [accountCreated, setAccountCreated] = React.useState(false);
@@ -52,75 +46,6 @@ function PopupModal({ mainTitle }) {
   const [isErrorInPassRegister, setIsErrorInPassRegister] = React.useState(0);
   const [showRegister, setShowRegister] = React.useState(1);
 
-  
-  //login function
-  const responseFacebookLogin = response => {
-    console.log(response);
-  };
-
-  const loginWithFG = async userData => {
-    // console.log('called',userData);
-    try {
-      let res = await fetch('https://medium-backend.onrender.com/loginUser', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      let data = await res.json();
-      // console.log(data);
-      if(data.message == 'User does not exist'){
-        setLoginFailed(true);
-        setAccountExists(false);
-        setAccountCreated(false);
-        setLoginFailedPass(false);
-        setLoginSuccess(false);
-        setTimeout(() => {
-          setLoginFailed(false);
-        }
-        , 3000);
-
-      }
-      else if(data.message == 'Incorrect password'){
-        setLoginFailed(false);
-        setAccountExists(false);
-        setAccountCreated(false);
-        setLoginFailedPass(true);
-        setLoginSuccess(false);
-        setTimeout(() => {
-          setLoginFailedPass(false);
-        }
-        , 3000);
-      }
-      else{
-        localStorage.setItem('token', data.token);
-        setLoginSuccess(true);
-        setLoginFailed(false);
-        setAccountExists(false);
-        setAccountCreated(false);
-        setLoginFailedPass(false);
-        setTimeout(() => {
-          setLoginSuccess(false);
-          navigate('/homepage');
-        }
-        , 3000);
-
-      }
-      
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const responseGoogleLogin = response => {
-    console.log(response);
-    loginWithFG({
-      email: response.profileObj.email,
-      password: response.profileObj.googleId,
-    });
-  };
-
   const handleLoginWithEmail = async () => {
     if (emailLogin.length === 0 && passwordLogin.length === 0) {
       setIsErrorInEmailLogin(1);
@@ -143,7 +68,7 @@ function PopupModal({ mainTitle }) {
       password: passwordLogin,
     };
     try {
-      let res = await fetch('https://medium-backend.onrender.com/loginUser', {
+      let res = await fetch('http://localhost:5000/loginUser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,8 +76,7 @@ function PopupModal({ mainTitle }) {
         body: JSON.stringify(userData),
       });
       let data = await res.json();
-      // console.log(data);
-      if(data.message == 'User does not exist'){
+      if (data.message === 'User does not exist') {
         setLoginFailed(true);
         setAccountExists(false);
         setAccountCreated(false);
@@ -160,11 +84,8 @@ function PopupModal({ mainTitle }) {
         setLoginSuccess(false);
         setTimeout(() => {
           setLoginFailed(false);
-        }
-        , 3000);
-
-      }
-      else if(data.message == 'Incorrect password'){
+        }, 3000);
+      } else if (data.message === 'Incorrect password') {
         setLoginFailed(false);
         setAccountExists(false);
         setAccountCreated(false);
@@ -172,11 +93,10 @@ function PopupModal({ mainTitle }) {
         setLoginSuccess(false);
         setTimeout(() => {
           setLoginFailedPass(false);
-        }
-        , 3000);
-      }
-      else{
+        }, 3000);
+      } else {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         setLoginSuccess(true);
         setLoginFailed(false);
         setAccountExists(false);
@@ -185,67 +105,11 @@ function PopupModal({ mainTitle }) {
         setTimeout(() => {
           setLoginSuccess(false);
           navigate('/homepage');
-        }
-        , 3000);
-
+        }, 3000);
       }
     } catch (error) {
       console.log(error);
     }
-  };
-
-  //signup function
-  const registerWithFG = async userData => {
-    // console.log('called',userData);
-    try {
-      let res = await fetch('https://medium-backend.onrender.com/createUser', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      let data = await res.json();
-      // console.log(data);
-      if(data.message == 'User already exists'){
-        setAccountCreated(false);
-        setAccountExists(true);
-        setLoginFailedPass(false);
-        setLoginSuccess(false);
-        setLoginFailed(false);
-        setTimeout(()=>{
-          setAccountExists(false);
-        },3000);
-        return;
-      }
-      else{
-
-        setAccountCreated(true);
-        setAccountExists(false);
-        setLoginFailedPass(false);
-        setLoginSuccess(false);
-        setLoginFailed(false);
-        setTimeout(()=>{
-          setAccountCreated(false);
-        }
-        ,3000);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const responseFacebookRegister = response => {
-    console.log(response);
-  };
-
-  const responseGoogleRegister = response => {
-    // console.log(response);
-    registerWithFG({
-      name: response.profileObj.name,
-      email: response.profileObj.email,
-      password: response.profileObj.googleId,
-      avatar: response.profileObj.imageUrl
-    });
   };
 
   const handleRegisterWithEmail = async () => {
@@ -284,7 +148,7 @@ function PopupModal({ mainTitle }) {
       password: registerPassword,
     };
     try {
-      let res = await fetch('https://medium-backend.onrender.com/createUser', {
+      let res = await fetch('http://localhost:5000/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -292,67 +156,40 @@ function PopupModal({ mainTitle }) {
         body: JSON.stringify(userData),
       });
       let data = await res.json();
-      // console.log(data);
-      // register Success full popup
-      if(data.message == 'User already exists'){
+      if (data.message === 'User already exists') {
         setAccountCreated(false);
         setAccountExists(true);
         setLoginFailedPass(false);
         setLoginFailed(false);
         setLoginSuccess(false);
-        setTimeout(()=>{
+        setTimeout(() => {
           setAccountExists(false);
-        },3000);
+        }, 3000);
         return;
-      }
-      else{
-
+      } else {
         setAccountCreated(true);
         setAccountExists(false);
         setLoginFailedPass(false);
         setLoginFailed(false);
         setLoginSuccess(false);
-        setTimeout(()=>{
+        setTimeout(() => {
           setAccountCreated(false);
-        }
-        ,3000);
+        }, 3000);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  //use effect
-  React.useEffect(() => {
-    function start() {
-      gapi.client.init({
-        clientId: process.env.REACT_APP_ID,
-        scope: 'email',
-      });
-    }
-    gapi.load('client:auth2', start);
-  }, []);
-  
-
   return (
     <>
       <span onClick={onOpen}>{mainTitle}</span>
-      {
-        accountCreated ? <Toast type='accountCreated' />: null
-      }
-      {
-        accountExists ? <Toast type='accountExists' />: null
-      }
-      {
-        loginFailedPass ? <Toast type='loginFailedPass' />: null
-      }
-      {
-        loginFailed ? <Toast type='loginFailed' />: null
-      }
-      {
-        loginSuccess ? <Toast type='loginSuccess' />: null
-      }
-      <Modal isOpen={isOpen} onClose={onClose} id='popup-modal'>
+      {accountCreated ? <Toast type="accountCreated" /> : null}
+      {accountExists ? <Toast type="accountExists" /> : null}
+      {loginFailedPass ? <Toast type="loginFailedPass" /> : null}
+      {loginFailed ? <Toast type="loginFailed" /> : null}
+      {loginSuccess ? <Toast type="loginSuccess" /> : null}
+      <Modal isOpen={isOpen} onClose={onClose} id="popup-modal">
         <ModalOverlay />
         <ModalContent
           maxH={'1000px'}
@@ -376,52 +213,29 @@ function PopupModal({ mainTitle }) {
                       fontWeight={400}
                       margin="50px 0px 50px 0px"
                     >
-                      Join Medium.
+                      Join Beehive.
                     </ModalHeader>
                   </ModalBody>
                   <Box>
                     <Box>
-                      <Box margin={'10px'} className="login-with-facebook">
-                        <FaFacebook color='blue' size={22}/>
-                        <FacebookLogin 
-                          appId="358532346452010" //APP ID NOT CREATED YET
-                          fields="name,email,picture"
-                          textButton='Sign up with Facebook'
-                          cssClass=''
-                          callback={responseFacebookRegister}
-                        />
-                      </Box>
-                      <Box margin={'10px'}>
-                        <GoogleLogin
-                          clientId= {process.env.REACT_APP_ID} //CLIENTID NOT CREATED YET
-                          buttonText="Sign up with Google"
-                          className='login-with-google'
-                          icon={true} 
-                          onSuccess={responseGoogleRegister}
-                          onFailure={responseGoogleRegister}
-                        />
-                      </Box>
-
-                      <Box marginBottom={'40px'} className='login-with-email'>
-                      <GoMail size={22} />
+                      <Box marginBottom={'40px'} className="login-with-email">
                         <Button
-                          // id="mailButton"
-                         id='login-with-email-button'
+                          id="login-with-email-button"
                           value={showRegister}
                           onClick={() => setShowRegister(0)}
                         >
-                         Sign up with Email
+                          Sign up with Email
                         </Button>
                       </Box>
                       <p id="signBtn">
                         Already have an account?
-                        <span id='signInBtn' onClick={()=>setPopup(false)}>Sign in</span>
-                        {/* <Login mainTitle="Sign in" /> */}
+                        <span id="signInBtn" onClick={() => setPopup(false)}>
+                          Sign in
+                        </span>
                       </p>
                     </Box>
                     <Box id="termncon">
-                      Click “Sign Up” to agree to Medium’s Terms of Service and
-                      acknowledge that Medium’s Privacy Policy applies to you.
+                      
                     </Box>
                   </Box>
                 </>
@@ -444,8 +258,7 @@ function PopupModal({ mainTitle }) {
                     <Box>
                       <Box>
                         <h4 className="contentBox">
-                          Enter the email address associated with your account,
-                          and we’ll send a magic link to your inbox.
+                          Enter the email address associated with your account
                         </h4>
                       </Box>
 
@@ -543,49 +356,24 @@ function PopupModal({ mainTitle }) {
                     </ModalHeader>
                   </ModalBody>
                   <Box>
-                    <Box margin={'10px'} className="login-with-facebook">
-                    <FaFacebook color='blue' size={22}/>
-                      <FacebookLogin
-                        appId="358532346452010" //APP ID NOT CREATED YET
-                        fields="name,email,picture"
-                        textButton='Sign in with Facebook'
-                        cssClass=''
-                        callback={responseFacebookLogin}
-                      />
-                    </Box>
-                    <Box margin={'10px'}>
-                      {/* <div className='google-box'> */}
-                      <GoogleLogin
-                        clientId={process.env.REACT_APP_ID} //CLIENTID NOT CREATED YET
-                        buttonText="Sign in with Google"
-                        className='login-with-google'
-                          icon={true}
-                        onSuccess={responseGoogleLogin}
-                        onFailure={responseGoogleLogin}
-                      />
-                      {/* </div> */}
-                    </Box>
-
-                    <Box marginBottom={'40px'} className='login-with-email'>
-                    <GoMail size={22}/>
+                    <Box marginBottom={'40px'} className="login-with-email">
                       <Button
-                        // id="mailButton"
-                        id='login-with-email-button'
+                        id="login-with-email-button"
                         value={showLogin}
                         onClick={() => setShowLogin(0)}
                       >
-                         Sign In with Email
+                        Sign In with Email
                       </Button>
                     </Box>
                     <p id="signBtn">
                       No account?
-                      <span id='createOneBtn' onClick={()=>setPopup(true)}>Create One</span>
-                      {/* <Register mainTitle="Create One" /> */}
+                      <span id="createOneBtn" onClick={() => setPopup(true)}>
+                        Create One
+                      </span>
                     </p>
                   </Box>
                   <Box id="termncon">
-                    Click “Sign In” to agree to Medium’s Terms of Service and
-                    acknowledge that Medium’s Privacy Policy applies to you.
+                    
                   </Box>
                 </>
               ) : (
@@ -607,8 +395,7 @@ function PopupModal({ mainTitle }) {
                     <Box>
                       <Box>
                         <h4 className="contentBox">
-                          Enter the email address associated with your account,
-                          and we’ll send a magic link to your inbox.
+                          Enter the email address associated with your account
                         </h4>
                       </Box>
                       <FormControl id="emailBox">

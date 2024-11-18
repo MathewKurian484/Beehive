@@ -1,123 +1,55 @@
-import React, { useState, useEffect } from 'react'
-import "./post.css"
-import { useParams } from "react-router-dom";
-import SinglePostCard from "./component/singlePostCard"
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import SinglePostCard from './component/singlePostCard';
 import Left from '../LeftNav/LeftNav';
 import RightTwo from '../RightParts/rightTwo';
-import { Box, Skeleton, SkeletonCircle, SkeletonText } from '@chakra-ui/react';
+import { Box, Skeleton, SkeletonCircle } from '@chakra-ui/react';
 
 export default function SinglePost() {
-    const params = useParams();
-    // console.log(params)
-    // console.log(params.postId);
-    const [post, setPost] = useState();
-    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const { postId } = useParams();
+  const [post, setPost] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    async function getPost(postId) {
-        // console.log(postId)
-        setIsLoadingPosts(true);
-        const response = await fetch(`https://medium-backend.onrender.com/getPost/${postId}`).catch((err) => {
-            console.log(err);
+  useEffect(() => {
+    console.log(postId)
+    const fetchPost = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/postsdisplay/${postId}`,{
+          method: "GET",
+          headers: {
+            "content-Type": "application/json",
+          },
         });
-
         const data = await response.json();
+        console.log(data);
         setPost(data);
-        setIsLoadingPosts(false);
-        // console.log(data);
-    }
-    useEffect(() => {
-        // getPost(params.postId).then((response) => setPost(response.data));
-        getPost(params.postId)
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+      }
+    };
 
-    },[params.postId])
+    fetchPost();
+  }, [postId]);
 
-//this is for profile
-    // const div= document.getElementById('profile');
-    // const profile = ReactDOM.createRoot(div);
-
-    // profile.render(
-    //     post ? (<Profile key={post._id} post={post} />) : null
-    // );
-    
-
-    return (
-<div>
-{
-    isLoadingPosts ? <>
+  return (
     <div>
-        <Left/>
-        {/* <RightTwo userPost={post.user}/> */}
-        <div className='post1'>
-            <Box style={{display:"flex", flexDirection:"column", gap:"10px"}}>
-            <Box style={{display:"flex", flexDirection:"row", gap:"15px"}}>
-                <SkeletonCircle size={10} />
-                <Box style={{display:"flex", flexDirection:"column", gap:"7px"}}>
-                    <Skeleton height={18} width={200}/>
-                    <Box style={{display:"flex", flexDirection:"row", gap:"10px"}}>
-                        <Skeleton height={15}  width={100}/>
-                        <Skeleton height={15} width={90}/>
-                    </Box>
-                </Box>
-                <Box style={{display:"flex", flexDirection:"row", gap:"15px", margin:"auto"}}>
-                    <Skeleton height={30} width={10}/>
-                    <Skeleton height={30} width={10}/>
-                    <Skeleton height={30} width={10}/>
-                    <Skeleton height={30} width={10}/>
-                </Box>
-                <Box style={{margin:"auto", marginRight:"0"}}>
-                <Skeleton height={30} width={10}/>
-                </Box>
-            </Box>
-            <Skeleton height={35} mt={2} mb={1} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            <Skeleton height={18} />
-            </Box>
-        </div>
+      <Left />
+      <RightTwo userPost={post?.author} />
+      <div className="post">
+        {isLoading ? (
+          <Box mt={2} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <SkeletonCircle size="10" />
+            <Skeleton height="20px" width="150px" />
+            <Skeleton height="30px" mt={1} mb={1} />
+            <Skeleton height="18px" />
+            <Skeleton height="18px" />
+            <Skeleton height="18px" />
+          </Box>
+        ) : (
+          post && <SinglePostCard post={post} />
+        )}
+      </div>
     </div>
-    </> : <>
-    {
-    post ? (
-        <div>
-         <Left/>
-         <RightTwo userPost={post.user}/>
-         <div className='post1'>
-         <SinglePostCard key={post._id} post={post} />
-         </div>
-        </div>
-    ) : null
-}
-    </>
-}
-
-</div>
-       
-    )
+  );
 }

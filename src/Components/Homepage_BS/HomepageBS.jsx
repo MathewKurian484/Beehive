@@ -23,10 +23,9 @@ function HomepageBS() {
   const getAllPosts = async () => {
     try {
       setIsLoadingPosts(true);
-      let res = await fetch('https://medium-backend.onrender.com/getAllPosts');
+      let res = await fetch('http://localhost:5000/posts');
       let data = await res.json();
-      let rand = Math.round(Math.random()*100);
-      data = data.slice(rand, rand+20);
+      console.log(data);
       setAllPosts(data);
       setIsLoadingPosts(false);
       // console.log(data);
@@ -57,6 +56,9 @@ function HomepageBS() {
   useEffect(() => {
     getAllPosts();
   }, []);
+  useEffect(()=>{
+    console.log(allPosts);
+  },[allPosts]);
 
   return (
     <div>
@@ -145,9 +147,8 @@ function HomepageBS() {
             {allPosts.map((post, index) => (
             <div key={index} style={{marginBottom:"40px"}}>
               <div style={{ gap: '10px' }} className="avatar">
-                <Avatar size="xs" name={post.user.name} src={post.user.avatar}/>
                 <Heading size="sm" fontWeight={500}>
-                  {post.user.name}
+                  {post.author}
                 </Heading>
               </div>
 
