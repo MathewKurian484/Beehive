@@ -1,97 +1,55 @@
+/* Container for the account details and posts */
 .account-container {
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-    font-family: sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-  
-  .account-heading {
-    margin-bottom: 20px;
-    font-size: 32px;
-    font-weight: 700;
-    font-family: 'Times New Roman', Times, serif;
-  }
-  
-  .account-details {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 40px;
-  }
-  
-  .account-details input {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #cecece;
-    border-radius: 5px;
-  }
-  
-  .account-details button {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .account-details button:hover {
-    background: #0056b3;
-  }
-  
-  .account-details .delete-button {
-    background: #dc3545;
-  }
-  
-  .account-details .delete-button:hover {
-    background: #c82333;
-  }
-  
-  .posts-heading {
-    margin-top: 40px;
-    margin-bottom: 20px;
-    font-size: 28px;
-    font-weight: 700;
-    font-family: 'Times New Roman', Times, serif;
-  }
-  
-  .posts-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .loading-text {
-    font-size: 18px;
-    color: #6c757d;
-  }
-  
-  #account-update-button {
-    width: 226px;
-    border-radius: 99em;
-    line-height: 20px;
-    font-weight: 400;
-    text-align: center;
-    margin: auto;
-    margin-top: 30px;
-  }
-  
-  #account-update-button:hover {
-    background: rgba(8, 8, 8, 1);
-  }
-  
-  #account-delete-button {
-    width: 226px;
-    border-radius: 99em;
-    line-height: 20px;
-    font-weight: 400;
-    text-align: center;
-    margin: auto;
-    margin-top: 30px;
-    background: #dc3545;
-  }
-  
-  #account-delete-button:hover {
-    background: #c82333;
-  }
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Styling for the user's avatar */
+.account-avatar {
+  margin: 0 auto;
+  display: block;
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+}
+
+/* Styling for the account heading */
+.account-heading {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 10px;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+/* Styling for the account details */
+.account-details {
+  text-align: center;
+  font-size: 1.2rem;
+  color: gray;
+  margin-top: 5px;
+}
+
+/* Styling for the posts section heading */
+.posts-heading {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+/* Container for the posts */
+.posts-container {
+  margin-top: 20px;
+}
+
+/* Styling for individual post cards */
+.post-card {
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

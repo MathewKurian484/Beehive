@@ -138,14 +138,25 @@ app.get('/getSingleUser/:id', async (req, res) => {
   }
 });
 
+// Check if the current user is following the author
+app.get('/isFollowing/:userId/:authorId', async (req, res) => {
+  const { userId, authorId } = req.params;
+
+  try {
+    const [rows] = await db.query('SELECT * FROM following WHERE user_id = ? AND following_id = ?', [userId, authorId]);
+    res.json({ isFollowing: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Follow a user
 app.post('/followUser/:id', async (req, res) => {
   const { id } = req.params;
-  const { token } = req.headers;
+  const { currentUserId } = req.body;
+
   try {
-    // Assuming you have a function to get user ID from token
-    const userId = getUserIdFromToken(token);
-    await db.query('INSERT INTO following (user_id, following_id) VALUES (?, ?)', [userId, id]);
+    await db.query('INSERT INTO following (user_id, following_id) VALUES (?, ?)', [currentUserId, id]);
     res.status(200).json({ message: 'User followed' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -155,12 +166,48 @@ app.post('/followUser/:id', async (req, res) => {
 // Unfollow a user
 app.post('/unfollowUser/:id', async (req, res) => {
   const { id } = req.params;
-  const { token } = req.headers;
+  const { currentUserId } = req.body;
+
   try {
-    // Assuming you have a function to get user ID from token
-    const userId = getUserIdFromToken(token);
-    await db.query('DELETE FROM following WHERE user_id = ? AND following_id = ?', [userId, id]);
+    await db.query('DELETE FROM following WHERE user_id = ? AND following_id = ?', [currentUserId, id]);
     res.status(200).json({ message: 'User unfollowed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get follower count for a user
+app.get('/followerCount/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query('SELECT COUNT(*) AS followerCount FROM following WHERE following_id = ?', [userId]);
+    const followerCount = rows[0].followerCount;
+    res.json({ followerCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get list of followers for a user
+app.get('/followers/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query('SELECT users.id, users.name FROM following JOIN users ON following.user_id = users.id WHERE following.following_id = ?', [userId]);
+    res.json({ followers: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get list of people the user is following
+app.get('/following/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query('SELECT users.id, users.name FROM following JOIN users ON following.following_id = users.id WHERE following.user_id = ?', [userId]);
+    res.json({ following: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -243,6 +290,24 @@ app.delete('/deleteUser/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Get author details and their posts by user_id
+app.get('/authors/:user_id', async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+    const [authorRows] = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+    const [postRows] = await db.query('SELECT * FROM posts WHERE user_id = ?', [userId]);
+
+    if (authorRows.length === 0) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
+
+    res.json({ author: authorRows[0], posts: postRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 function getUserIdFromToken(token) {

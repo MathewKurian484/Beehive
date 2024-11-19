@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Heading, Input, Button, Text, VStack, useToast, Avatar } from '@chakra-ui/react';
+import { Box, Heading, Input, Button, Text, VStack, useToast, Avatar, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, HStack, Spacer } from '@chakra-ui/react';
 import PostCard from '../midPart/component/PostCard'; // Update the path to the correct location
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './account.css';
 
 export default function Account() {
@@ -11,6 +11,11 @@ export default function Account() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
+  const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -26,18 +31,28 @@ export default function Account() {
         setEmail(userData.email);
         setPassword(userData.password);
 
-
         const postsResponse = await fetch(`http://localhost:5000/getPostsByUser`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id: userId}),
+          body: JSON.stringify({ id: userId }),
         });
         const postsData = await postsResponse.json();
-        console.log(postsData)
         setPosts(Array.isArray(postsData) ? postsData : []);
         setIsLoading(false);
+
+        const followerCountResponse = await fetch(`http://localhost:5000/followerCount/${userId}`);
+        const followerCountData = await followerCountResponse.json();
+        setFollowerCount(followerCountData.followerCount);
+
+        const followersResponse = await fetch(`http://localhost:5000/followers/${userId}`);
+        const followersData = await followersResponse.json();
+        setFollowers(followersData.followers || []);
+
+        const followingResponse = await fetch(`http://localhost:5000/following/${userId}`);
+        const followingData = await followingResponse.json();
+        setFollowing(followingData.following || []);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -47,8 +62,7 @@ export default function Account() {
   }, []);
 
   const handleUpdate = async () => {
-    const userId = (JSON.parse(localStorage.getItem('user'))).id;
-    console.log(userId, name , email, password)
+    const userId = JSON.parse(localStorage.getItem('user')).id;
     try {
       const response = await fetch(`http://localhost:5000/updateUser`, {
         method: 'PUT',
@@ -58,7 +72,6 @@ export default function Account() {
         body: JSON.stringify({ id: userId, name, email, password }),
       });
       const data = await response.json();
-      console.log(data)
       if (data.error) {
         toast({
           title: 'Error updating user.',
@@ -113,24 +126,104 @@ export default function Account() {
     }
   };
 
+  const handleGoToHomepage = () => {
+    navigate('/homepage');
+  };
+
+  const handleOpenFollowersModal = () => {
+    setIsFollowersModalOpen(true);
+  };
+
+  const handleCloseFollowersModal = () => {
+    setIsFollowersModalOpen(false);
+  };
+
+  const handleOpenFollowingModal = () => {
+    setIsFollowingModalOpen(true);
+  };
+
+  const handleCloseFollowingModal = () => {
+    setIsFollowingModalOpen(false);
+  };
+
+  const handleUnfollow = async (followerId) => {
+    const userId = JSON.parse(localStorage.getItem('user')).id;
+    try {
+      const response = await fetch(`http://localhost:5000/unfollowUser/${followerId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentUserId: userId }),
+      });
+
+      if (response.ok) {
+        setFollowers(followers.filter(follower => follower.id !== followerId));
+        setFollowerCount(followerCount - 1);
+        toast({
+          title: 'Unfollowed successfully.',
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        console.error('Failed to unfollow user');
+      }
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+    }
+  };
+
   return (
     <Box className="account-container">
-      <Heading className="account-heading">Account Details</Heading>
-      <VStack className="account-details" spacing={4} align="stretch">
+      <VStack spacing={5} align="stretch">
+        <Button
+          id="go-to-homepage-button"
+          onClick={handleGoToHomepage}
+          colorScheme="green"
+          style={{ width: '150px' }}
+        >
+          Go to Homepage
+        </Button>
+        <Avatar name={user.name} src={user.avatar} size="xl" className="account-avatar" />
+        <Heading as="h2" size="xl" className="account-heading">
+          {user.name}
+        </Heading>
+        <Text fontSize="lg" className="account-email">{user.email}</Text>
+        <Button onClick={handleOpenFollowersModal} colorScheme="teal" variant="link">
+          Followers: {followerCount}
+        </Button>
+        <Button onClick={handleOpenFollowingModal} colorScheme="teal" variant="link">
+          Following: {following.length}
+        </Button>
         <Box>
           <Text>Name</Text>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <Input value={name} onChange={(e) => setName(e.target.value)} style={{ width: '400px' }} />
         </Box>
         <Box>
           <Text>Email</Text>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '400px' }} />
         </Box>
         <Box>
           <Text>Password</Text>
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '400px' }} />
         </Box>
-        <Button id="account-update-button" onClick={handleUpdate} colorScheme="blue">Update</Button>
-        <Button id="account-delete-button" onClick={handleDelete} className="delete-button">Delete Account</Button>
+        <Button
+          id="account-update-button"
+          onClick={handleUpdate}
+          colorScheme="blue"
+          style={{ width: '150px' }}
+        >
+          Update
+        </Button>
+        <Button
+          id="account-delete-button"
+          onClick={handleDelete}
+          className="delete-button"
+          style={{ width: '150px' }}
+        >
+          Delete Account
+        </Button>
       </VStack>
       <Heading className="posts-heading">Your Posts</Heading>
       <Box className="posts-container">
@@ -138,15 +231,62 @@ export default function Account() {
           <Text className="loading-text">Loading...</Text>
         ) : (
           posts.map((post) => (
-            <PostCard key={post.id} post={post} loggedPosts={true} />
+            <Box key={post.id} className="post-card">
+              <PostCard post={post} loggedPosts={true} />
+            </Box>
           ))
         )}
       </Box>
-      <div style={{ display: "flex", flexDirection: "row", justifyContent: "center", gap: "20px", marginTop: "30px" }}>
-        <Link to="/homepage">
-          <Button style={{ backgroundColor: "green", color: "white", borderRadius: "100px", margin: "auto", fontWeight: "450", fontFamily: "sohne, 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>Homepage</Button>
-        </Link>
-      </div>
+
+      <Modal isOpen={isFollowersModalOpen} onClose={handleCloseFollowersModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Followers</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {followers.length > 0 ? (
+              followers.map((follower) => (
+                <HStack key={follower.id} spacing={4} mb={4}>
+                  <Avatar name={follower.name} src={follower.avatar} />
+                  <Text>{follower.name}</Text>
+                  <Spacer />
+                  <Button onClick={() => handleUnfollow(follower.id)} colorScheme="red" size="sm">
+                    Unfollow
+                  </Button>
+                </HStack>
+              ))
+            ) : (
+              <Text>No followers found.</Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleCloseFollowersModal}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isFollowingModalOpen} onClose={handleCloseFollowingModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Following</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {following.length > 0 ? (
+              following.map((followedUser) => (
+                <HStack key={followedUser.id} spacing={4} mb={4}>
+                  <Avatar name={followedUser.name} src={followedUser.avatar} />
+                  <Text>{followedUser.name}</Text>
+                </HStack>
+              ))
+            ) : (
+              <Text>Not following anyone.</Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleCloseFollowingModal}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

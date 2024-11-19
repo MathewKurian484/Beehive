@@ -20,9 +20,6 @@ export default function Right() {
   return (
     <div className='right'>
       <div>
-        <button>Get unlimited access</button>
-      </div>
-      <div>
         <Input
           type="text"
           id='search'
@@ -38,7 +35,9 @@ export default function Right() {
             <PostCard key={post.id} post={post} />
           ))
         ) : (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
           <Text>No search results found.</Text>
+        </Box>
         )}
       </div>
     </div>

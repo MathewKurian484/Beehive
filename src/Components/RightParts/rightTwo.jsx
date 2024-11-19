@@ -1,13 +1,16 @@
 import { Avatar, Box, Button, Heading, HStack, Skeleton, SkeletonCircle } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './right.css';
 import { GiMailedFist } from 'react-icons/gi';
+import PostCard from '../midPart/component/PostCard';
 
 export default function RightTwo({ userPost = {} }) {
-  const [singleUser, setSingleUser] = React.useState(userPost);
-  const [user, setUser] = React.useState();
-  const [followed, setFollowed] = React.useState(null);
-  const [isLoadingUser, setIsLoadingUser] = React.useState(false);
+  const [singleUser, setSingleUser] = useState(userPost);
+  const [user, setUser] = useState();
+  const [followed, setFollowed] = useState(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   const checkFollowed = async user => {
     if (userPost._id && user.following.includes(userPost._id)) {
@@ -22,56 +25,36 @@ export default function RightTwo({ userPost = {} }) {
   const followUser = async userId => {
     try {
       setIsLoadingUser(true);
-      let token = localStorage.getItem('token');
       await fetch(`http://localhost:5000/followUser/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token,
         },
-      });
-      await refreshUser().then(() => {
-        getUser(localStorage.getItem('token'));
+        body: JSON.stringify({ currentUserId: user.id }),
       });
       setFollowed(true);
       setIsLoadingUser(false);
     } catch (error) {
-      console.log(error);
+      console.error('Error following user:', error);
+      setIsLoadingUser(false);
     }
   };
 
   const unfollowUser = async userId => {
     try {
       setIsLoadingUser(true);
-      let token = localStorage.getItem('token');
       await fetch(`http://localhost:5000/unfollowUser/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token,
         },
-      });
-      await refreshUser().then(() => {
-        getUser(localStorage.getItem('token'));
+        body: JSON.stringify({ currentUserId: user.id }),
       });
       setFollowed(false);
       setIsLoadingUser(false);
     } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const refreshUser = async () => {
-    try {
-      setIsLoadingUser(true);
-      if (userPost._id) {
-        let res = await fetch(`http://localhost:5000/getSingleUser/${userPost._id}`);
-        let result = await res.json();
-        setSingleUser(result);
-      }
+      console.error('Error unfollowing user:', error);
       setIsLoadingUser(false);
-    } catch (error) {
-      console.log(error);
     }
   };
 
@@ -91,32 +74,41 @@ export default function RightTwo({ userPost = {} }) {
       checkFollowed(user);
     } catch (error) {
       console.log(error);
+      setIsLoadingUser(false);
     }
   };
 
-  React.useEffect(() => {
+  const getPosts = async () => {
+    try {
+      setIsLoadingPosts(true);
+      const response = await fetch("http://localhost:5000/posts", {
+        method: "GET",
+        headers: {
+          "content-Type": "application/json",
+        }
+      });
+      const data = await response.json();
+      setPosts(data);
+      setIsLoadingPosts(false);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setIsLoadingPosts(false);
+    }
+  };
+
+  useEffect(() => {
     if (localStorage.getItem('token')) {
       getUser(localStorage.getItem('token'));
     }
+    getPosts();
   }, []);
 
   return (
     <div className="right">
       <div>
-        <button>Get unlimited access</button>
-      </div>
-      <div>
-        <input type="text" id="search" placeholder="Search" />
-      </div>
-      <>
         {isLoadingUser ? (
           <Box className="loading" ml="40px" mt={15} mb={5}>
             <SkeletonCircle size="20" margin="auto" mt={5} />
-            <Skeleton height="32px" mt="5" />
-            <Skeleton height="20px" mt="8" />
-            <Skeleton height="20px" mt="4" />
-            <Skeleton height="20px" mt="4" />
-            <Skeleton height="32px" mt="5" />
           </Box>
         ) : (
           <>
@@ -194,7 +186,6 @@ export default function RightTwo({ userPost = {} }) {
                       Follow
                     </Button>
                   )}
-
                   <Button
                     style={{
                       width: '50px',
@@ -212,53 +203,32 @@ export default function RightTwo({ userPost = {} }) {
             ) : null}
           </>
         )}
-      </>
-      <Heading
-        as="h4"
-        marginLeft={10}
-        marginTop={7}
-        marginBottom={5}
-        fontSize={20}
-        fontWeight={500}
-        className="li-tag"
-      >
-        More From Medium
+      </div>
+      <Heading as="h4" marginLeft={10} marginTop={7} marginBottom={5} fontSize={20} fontWeight={500} className="li-tag">
+        More Posts
       </Heading>
       <div className="topic">
-        <HStack spacing="10px">
-          <Avatar
-            size="xs"
-            name="Akash Kumawat"
-          />
-          <Heading as="h6" fontWeight={600} size="xs">
-            Akash Kumawat
-          </Heading>
-        </HStack>
-        <Heading as="h5" mt={2} cursor="pointer" size="sm">
-          Can Reading Fiction Make You a Better Person?
-        </Heading>
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          paddingLeft: '40px',
-          paddingRight: '40px',
-          flexWrap: 'wrap',
-          fontSize: '13px',
-          gap: '5px',
-          marginTop: '10px',
-        }}
-      >
-        <p>Help</p>
-        <p>Status</p>
-        <p>Writers</p>
-        <p>Blog</p>
-        <p>Careers</p>
-        <p>Privacy</p>
-        <p>Terms</p>
-        <p>About</p>
-        <p>Knowable</p>
+        {isLoadingPosts ? (
+          <Box mt={2} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <Box mt={5} style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+              <SkeletonCircle size="10" />
+              <Skeleton height="20px" margin='auto' ml={0} mr={0} width='150px' />
+              <Skeleton height="20px" margin="auto" ml={0} width='100px' />
+            </Box>
+            <Skeleton height="30px" mt={1} mb={1} />
+            <Skeleton height="18px" />
+            <Skeleton height="18px" />
+            <Skeleton height="18px" />
+            <Box style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+              <Skeleton height="15px" width={100} />
+              <Skeleton height="15px" width={150} />
+            </Box>
+          </Box>
+        ) : (
+          posts.map(post => (
+            <PostCard key={post.id} post={post} />
+          ))
+        )}
       </div>
     </div>
   );

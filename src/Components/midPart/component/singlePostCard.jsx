@@ -1,8 +1,10 @@
 import React from 'react';
 import { Heading, HStack, Text, Box, Avatar } from '@chakra-ui/react';
 import { BsDot, BsFillHeartFill } from 'react-icons/bs';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function SinglePostCard({ post = {} }) {
+  const navigate = useNavigate();
   const [liked, setLiked] = React.useState(false);
   const [user, setUser] = React.useState({});
 
@@ -96,11 +98,20 @@ export default function SinglePostCard({ post = {} }) {
     }
   }, []);
 
+  const handleAuthorClick = () => {
+    navigate(`/AuthorAcc/${post.user_id}`);
+  };
+
   return (
     <div>
       <Box style={{ marginTop: 10 }}>
         <HStack spacing="25px" mt={8}>
-          <Avatar name={post.author?.name} src={post.author?.avatar} />
+        <Avatar
+            name={post.author}
+            src={post.avatar}
+            style={{ cursor: 'pointer' }}
+            onClick={handleAuthorClick}
+          />
           <div style={{ width: '300px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <Heading as="h5" size="sm">
               {post.author?.name}

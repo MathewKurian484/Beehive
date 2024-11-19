@@ -8,6 +8,7 @@ import Create from './Components/Pages/Create';
 import Bookmark from './Components/Pages/Bookmark';
 import SinglePost from './Components/midPart/singlePost';
 import Account from './Components/account/account'
+import AuthorAcc from './Components/account/authoracc';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
       <Route path="/create" element={<Create />} />
       <Route path="/bookmark" element={<Bookmark />} />
       <Route path="/account" element={<Account />} />
+      <Route path="/authoracc/:user_id" element={<AuthorAcc />} />
     </Routes>
   );
 }
