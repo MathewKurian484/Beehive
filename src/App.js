@@ -10,7 +10,6 @@ import SinglePost from './Components/midPart/singlePost';
 import Account from './Components/account/account'
 import AuthorAcc from './Components/account/authoracc';
 
-
 function App() {
   return ( 
     <Routes>

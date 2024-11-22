@@ -35,8 +35,8 @@ export function LeftNavProvider({ children }) {
 
   const getUser = async (token) => {
     try {
-      token = token || localStorage.getItem('token');
-      let res = await fetch(`http://localhost:5000/getUser`, {
+      token = token || localStorage.getItem('user');
+      let res = await fetch(`http://localhost:5000/getUser/${user.id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -51,8 +51,8 @@ export function LeftNavProvider({ children }) {
   };
 
   React.useEffect(() => {
-    if (localStorage.getItem('token')) {
-      getUser(localStorage.getItem('token'));
+    if (localStorage.getItem('user')) {
+      getUser(localStorage.getItem('user'));
     }
   }, []);
 

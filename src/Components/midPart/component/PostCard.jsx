@@ -51,6 +51,8 @@ export default function PostCard({ post, loggedPosts }) {
     }
   };
 
+  
+
   return (
     <Box className="post-card" style={{ marginTop: 10 }}>
       <HStack spacing='15px' mt={8}>
@@ -67,6 +69,7 @@ export default function PostCard({ post, loggedPosts }) {
           />
         )}
       </HStack>
+      
       <Link to={`/homepage/${post.id}`}>
         <Heading
           style={{

@@ -1,15 +1,17 @@
-import React from 'react';
-import { Heading, HStack, Text, Box, Avatar } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, HStack, Avatar, Heading, Text, useToast } from '@chakra-ui/react';
 import { BsDot, BsFillHeartFill } from 'react-icons/bs';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-export default function SinglePostCard({ post = {} }) {
+const SinglePostCard = ({ post, liked }) => {
   const navigate = useNavigate();
-  const [liked, setLiked] = React.useState(false);
-  const [user, setUser] = React.useState({});
+  const toast = useToast();
+  const [isLiked, setIsLiked] = useState(liked);
+  const [likeCount, setLikeCount] = useState(0);
+  const [user, setUser] = useState({});
 
   const handleLike = () => {
-    if (liked) {
+    if (isLiked) {
       dislikePost();
     } else {
       likePost();
@@ -17,15 +19,25 @@ export default function SinglePostCard({ post = {} }) {
   };
 
   const likePost = async () => {
+    if (isLiked) return; // Prevent liking the post multiple times
+
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
       await fetch(`http://localhost:5000/likePost/${post.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: localStorage.getItem('user'),
         },
+        body: JSON.stringify({ user_id: user.id }),
       });
-      setLiked(true);
+      setIsLiked(true);
+      setLikeCount(likeCount + 1);
+      toast({
+        title: 'Liked post',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -33,14 +45,22 @@ export default function SinglePostCard({ post = {} }) {
 
   const dislikePost = async () => {
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
       await fetch(`http://localhost:5000/dislikePost/${post.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: localStorage.getItem('user'),
         },
+        body: JSON.stringify({ user_id: user.id }),
       });
-      setLiked(false);
+      setIsLiked(false);
+      setLikeCount(likeCount - 1);
+      toast({
+        title: 'Disliked post',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -49,9 +69,9 @@ export default function SinglePostCard({ post = {} }) {
   const checkLiked = (user) => {
     let check = post.likes && post.likes.includes(user.id);
     if (check) {
-      setLiked(true);
+      setIsLiked(true);
     } else {
-      setLiked(false);
+      setIsLiked(false);
     }
   };
 
@@ -92,21 +112,50 @@ export default function SinglePostCard({ post = {} }) {
     }
   };
 
-  React.useEffect(() => {
+  const isLiking = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const response = await fetch(`http://localhost:5000/isLiking/${post.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+      const data = await response.json();
+      setIsLiked(data.isLiked);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getLikeCount = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/likeCount/${post.id}`);
+      const data = await response.json();
+      setLikeCount(data.likeCount);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
     if (localStorage.getItem('user')) {
       getUser(localStorage.getItem('user'));
+      isLiking();
+      getLikeCount();
     }
   }, []);
 
   const handleAuthorClick = () => {
-    navigate(`/AuthorAcc/${post.user_id}`);
+    navigate(`/authoracc/${post.user_id}`);
   };
 
   return (
     <div>
       <Box style={{ marginTop: 10 }}>
         <HStack spacing="25px" mt={8}>
-        <Avatar
+          <Avatar
             name={post.author}
             src={post.avatar}
             style={{ cursor: 'pointer' }}
@@ -122,13 +171,16 @@ export default function SinglePostCard({ post = {} }) {
               <Text fontSize="xs">{getDate(post.createdAt)}</Text>
             </div>
           </div>
-          <BsFillHeartFill
-            onClick={handleLike}
-            className="heart-icon"
-            color={liked ? 'rgb(207, 55, 38)' : 'gray'}
-            size={25}
-            style={{ marginLeft: '100px' }}
-          />
+          <HStack spacing="5px" alignItems="center">
+            <BsFillHeartFill
+              onClick={handleLike}
+              className="heart-icon"
+              color={isLiked ? 'rgb(207, 55, 38)' : 'gray'}
+              size={25}
+              style={{ cursor: 'pointer' }}
+            />
+            <Text fontSize="md">{likeCount}</Text>
+          </HStack>
         </HStack>
         <Heading
           style={{
@@ -156,4 +208,6 @@ export default function SinglePostCard({ post = {} }) {
       </Box>
     </div>
   );
-}
+};
+
+export default SinglePostCard;

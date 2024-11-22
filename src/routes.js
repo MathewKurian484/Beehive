@@ -213,14 +213,27 @@ app.get('/following/:userId', async (req, res) => {
   }
 });
 
-// Like a post
-app.post('/likePost/:id', async (req, res) => {
-  const { id } = req.params;
-  const { token } = req.headers;
+// Check if the post is liked by the user
+app.post('/isLiking/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+
   try {
-    // Assuming you have a function to get user ID from token
-    const userId = getUserIdFromToken(token);
-    await db.query('INSERT INTO likes (user_id, post_id) VALUES (?, ?)', [userId, id]);
+    const [rows] = await db.query('SELECT 1 FROM likes WHERE user_id = ? AND post_id = ?', [user_id, postId]);
+    const isLiked = rows.length > 0;
+    res.json({ isLiked });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Like a post
+app.post('/likePost/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+
+  try {
+    await db.query('CALL LikePost(?, ?)', [user_id, postId]);
     res.status(200).json({ message: 'Post liked' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -228,18 +241,18 @@ app.post('/likePost/:id', async (req, res) => {
 });
 
 // Dislike a post
-app.post('/dislikePost/:id', async (req, res) => {
-  const { id } = req.params;
-  const { token } = req.headers;
+app.post('/dislikePost/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+
   try {
-    // Assuming you have a function to get user ID from token
-    const userId = getUserIdFromToken(token);
-    await db.query('DELETE FROM likes WHERE user_id = ? AND post_id = ?', [userId, id]);
+    await db.query('CALL DislikePost(?, ?)', [user_id, postId]);
     res.status(200).json({ message: 'Post disliked' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Get posts by user
 app.post('/getPostsByUser', async (req, res) => {
@@ -252,11 +265,50 @@ app.post('/getPostsByUser', async (req, res) => {
   }
 });
 
-// Search posts by keyword
+// Search posts by keyword or username
 app.get('/searchPosts', async (req, res) => {
   const { keyword } = req.query;
   try {
-    const [rows] = await db.query('SELECT * FROM posts WHERE title LIKE ? OR content LIKE ?', [`%${keyword}%`, `%${keyword}%`]);
+    const [rows] = await db.query(`
+      SELECT * FROM posts 
+      WHERE user_id = (SELECT id FROM users WHERE name = ?)
+      UNION
+      SELECT * FROM posts 
+      WHERE title LIKE ? OR content LIKE ?
+    `, [keyword, `%${keyword}%`, `%${keyword}%`]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get liked posts for a user
+app.get('/likedPosts/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT posts.* FROM likes
+      JOIN posts ON likes.post_id = posts.id
+      WHERE likes.user_id = ?
+    `, [userId]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get posts from followed accounts
+app.get('/followedPosts/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT posts.* FROM posts
+      JOIN following ON following.following_id = posts.user_id
+      WHERE following.user_id = ?
+      ORDER BY posts.created_at DESC
+    `, [userId]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -308,6 +360,18 @@ app.get('/authors/:user_id', async (req, res) => {
   }
 });
 
+// Get like count for a post
+app.get('/likeCount/:postId', async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const [rows] = await db.query('SELECT COUNT(*) AS likeCount FROM likes WHERE post_id = ?', [postId]);
+    const likeCount = rows[0].likeCount;
+    res.json({ likeCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 function getUserIdFromToken(token) {
